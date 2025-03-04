@@ -1,0 +1,47 @@
+﻿@page "/weather"
+@attribute [StreamRendering]
+@inject WeatherService WeatherService
+@rendermode InteractiveServer
+
+
+<h3>Weather Forecast</h3>
+
+<input type="text" @bind="cityName" placeholder="Enter city" />
+<button @onclick="GetWeather">Get Weather</button>
+
+@if (weatherForecast != null)
+{
+    <div>
+        <br/>
+        <h4>Weather in @weatherForecast.city.name, @weatherForecast.city.country</h4>
+        @foreach (var group in weatherForecast.list.GroupBy(item => item.DateTime.Date))
+        {
+            <div>
+                <br/>
+                <h5>@group.Key.ToString("MMM d, yyyy")</h5>
+                <div class="weather-grid">
+                    @foreach (var item in group)
+                    {
+                        var iconUrl = $"https://openweathermap.org/img/wn/{item.weather?[0]?.icon}.png";                     
+                        <div class="weather-item">
+                            <span>@item.DateTime.ToString("HH:mm:ss")</span>
+                            <img src="@iconUrl" alt="Weather Icon" />
+                            <span>@(Math.Round(item.main.temp, 1)) °C</span>
+                            <span>@(item.weather?[0]?.description ?? "N/A")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private string cityName = "Copenhagen";  // Default city
+    private WeatherForecast weatherForecast;
+
+    private async Task GetWeather()
+    {
+        weatherForecast = await WeatherService.GetWeatherForecastAsync(cityName);
+    }
+}
